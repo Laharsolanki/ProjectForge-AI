@@ -4,6 +4,7 @@
 
 # ─── Secrets & Environment ────────────────────────────────────
 .env
+.env.example
 .env.local
 .env.production
 *.key
