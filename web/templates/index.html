@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectForge AI — Software Architect Agent</title>
+    <meta name="description" content="Professional-grade AI software architect that designs end-to-end solutions">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Highlight.js for code blocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+    <!-- ─── Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">🏗️</span>
+                <h1>ProjectForge <span class="ai-badge">AI</span></h1>
+            </div>
+            <p class="tagline">Software Architect Agent</p>
+        </div>
+
+        <div class="stage-tracker" id="stageTracker">
+            <h3>Analysis Progress</h3>
+            <div class="stage" data-stage="discovery">
+                <div class="stage-dot pending"></div>
+                <span>🔍 Discovery</span>
+            </div>
+            <div class="stage" data-stage="tech_design">
+                <div class="stage-dot pending"></div>
+                <span>🏗️ Technical Design</span>
+            </div>
+            <div class="stage" data-stage="risk_analysis">
+                <div class="stage-dot pending"></div>
+                <span>⚠️ Risk Analysis</span>
+            </div>
+            <div class="stage" data-stage="learning_path">
+                <div class="stage-dot pending"></div>
+                <span>📚 Learning Path</span>
+            </div>
+            <div class="stage" data-stage="report_generation">
+                <div class="stage-dot pending"></div>
+                <span>📋 Report</span>
+            </div>
+        </div>
+
+        <div class="sidebar-actions">
+            <button class="action-btn" id="newSessionBtn" title="New Project">
+                <span>➕</span> New Project
+            </button>
+            <button class="action-btn" id="reportsBtn" title="View Reports">
+                <span>📄</span> Reports
+            </button>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>Powered by <strong>Google ADK</strong> + <strong>Gemini</strong></p>
+        </div>
+    </aside>
+
+    <!-- ─── Main Chat Area ──────────────────────────────────────────── -->
+    <main class="chat-area">
+        <!-- Header -->
+        <header class="chat-header">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <div class="header-info">
+                <h2>Project Analysis</h2>
+                <span class="session-badge" id="sessionBadge">Session: connecting...</span>
+            </div>
+        </header>
+
+        <!-- Messages -->
+        <div class="messages-container" id="messagesContainer">
+            <!-- Welcome message -->
+            <div class="message agent-message welcome-message">
+                <div class="message-avatar">🏗️</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="agent-name">ProjectForge AI</span>
+                    </div>
+                    <div class="message-body">
+                        <h3>Welcome to ProjectForge AI! 👋</h3>
+                        <p>I'm your senior software architect. I'll guide you through a comprehensive project analysis:</p>
+                        <ol>
+                            <li><strong>Discovery</strong> — Understanding your real problem</li>
+                            <li><strong>Technical Design</strong> — Architecture, tech stack, database, API</li>
+                            <li><strong>Risk Analysis</strong> — What could go wrong and how to prevent it</li>
+                            <li><strong>Learning Path</strong> — Resources to get your team up to speed</li>
+                            <li><strong>Report</strong> — Professional document you can share</li>
+                        </ol>
+                        <p><strong>Tell me about your project idea</strong> — what problem are you trying to solve?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <textarea
+                    id="messageInput"
+                    placeholder="Describe your project idea..."
+                    rows="1"
+                    autofocus
+                ></textarea>
+                <button class="send-btn" id="sendBtn" title="Send">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <p class="input-hint">Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line</p>
+        </div>
+    </main>
+
+    <!-- ─── Reports Modal ───────────────────────────────────────────── -->
+    <div class="modal-overlay" id="reportsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📄 Generated Reports</h3>
+                <button class="modal-close" id="closeReportsModal">✕</button>
+            </div>
+            <div class="modal-body" id="reportsModalBody">
+                <p class="loading">Loading reports...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

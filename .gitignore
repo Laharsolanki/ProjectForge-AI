@@ -1,0 +1,69 @@
+# ═══════════════════════════════════════════════════════════════
+# ProjectForge AI — .gitignore
+# ═══════════════════════════════════════════════════════════════
+
+# ─── Secrets & Environment ────────────────────────────────────
+.env
+.env.local
+.env.production
+*.key
+*.pem
+
+# ─── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# ─── Virtual Environment ─────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Testing ─────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─── IDE ──────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# ─── OS Files ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# ─── Jupyter ──────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── Local Database ──────────────────────────────────────────
+memory/sessions.db
+memory/*.db
+
+# ─── Generated Reports (keep the directory, ignore contents) ─
+# Uncomment the next line if you don't want reports in Git:
+# reports/*.md
+
+# ─── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Misc ─────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.temp
+.cache/
