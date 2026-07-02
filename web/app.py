@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     global session_service, runner
 
     db_path = BASE_DIR / "memory" / "sessions.db"
-    session_service = DatabaseSessionService(db_url=f"sqlite:///{db_path}")
+    session_service = DatabaseSessionService(db_url=f"sqlite+aiosqlite:///{db_path}")
 
     runner = Runner(
         agent=root_agent,
@@ -80,7 +80,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """Serve the main chat UI."""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.post("/api/session")

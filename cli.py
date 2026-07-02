@@ -122,7 +122,7 @@ async def run_cli() -> None:
 
     # Initialize session service with SQLite for persistence
     db_path = BASE_DIR / "memory" / "sessions.db"
-    session_service = DatabaseSessionService(db_url=f"sqlite:///{db_path}")
+    session_service = DatabaseSessionService(db_url=f"sqlite+aiosqlite:///{db_path}")
 
     runner = Runner(
         agent=root_agent,

@@ -4,6 +4,7 @@
 
 # ─── Secrets & Environment ────────────────────────────────────
 .env
+PROJECT_CONTEXT.md
 
 .env.local
 .env.production

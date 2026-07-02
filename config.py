@@ -27,7 +27,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 # ─── Model Configuration ─────────────────────────────────────────────────────
 # Strong model for orchestrator and complex reasoning
-ORCHESTRATOR_MODEL = os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-pro")
+ORCHESTRATOR_MODEL = os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-flash")
 # Lighter model for focused sub-agents
 WORKER_MODEL = os.getenv("WORKER_MODEL", "gemini-2.5-flash")
 

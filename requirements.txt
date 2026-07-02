@@ -1,5 +1,5 @@
 # Core
-google-adk>=2.3.0
+google-adk[db]>=2.3.0
 google-genai>=1.0.0
 python-dotenv>=1.0.0
 
