@@ -13,6 +13,7 @@ from tools.cost_estimator import estimate_cloud_costs
 tech_design_agent = LlmAgent(
     name="tech_design_agent",
     model=ORCHESTRATOR_MODEL,
+    mode="single_turn",
     instruction=TECH_DESIGN_PROMPT,
     description=(
         "Senior software architect agent that designs the complete technical "

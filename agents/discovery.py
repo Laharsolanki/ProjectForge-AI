@@ -12,6 +12,7 @@ from prompts.discovery_prompt import DISCOVERY_PROMPT
 discovery_agent = LlmAgent(
     name="discovery_agent",
     model=WORKER_MODEL,
+    mode="single_turn",
     instruction=DISCOVERY_PROMPT,
     description=(
         "Specialized discovery agent that understands the user's project idea "

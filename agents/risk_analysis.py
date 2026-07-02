@@ -13,6 +13,7 @@ risk_analysis_agent = LlmAgent(
     name="risk_analysis_agent",
     model=WORKER_MODEL,
     instruction=RISK_PROMPT,
+    mode="single_turn",
     description=(
         "Reliability engineer agent that identifies 5-10 specific failure modes "
         "based on the Discovery Report and Technical Design. Provides impact, "
