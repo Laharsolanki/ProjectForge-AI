@@ -13,7 +13,7 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -110,7 +110,10 @@ async def list_reports():
 @app.get("/api/reports/{filename}")
 async def download_report(filename: str):
     """Download a specific report."""
-    filepath = REPORTS_DIR / filename
+    reports_dir = REPORTS_DIR.resolve()
+    filepath = (reports_dir / filename).resolve()
+    if reports_dir not in filepath.parents or filepath.suffix != ".md":
+        raise HTTPException(status_code=400, detail="Invalid report filename")
     if not filepath.exists() or not filepath.is_file():
         return JSONResponse(
             status_code=404,

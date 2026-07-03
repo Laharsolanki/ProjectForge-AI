@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from fastapi import HTTPException
 
 
 class TestCostEstimator:
@@ -191,3 +192,30 @@ class TestMemoryTools:
         with patch("tools.memory_tools.MEMORY_DIR", tmp_path):
             result = list_projects()
             assert result["count"] == 0
+
+
+class TestWebReports:
+    """Tests for web report download safety."""
+
+    @pytest.mark.asyncio
+    async def test_download_report_rejects_path_traversal(self, tmp_path):
+        from web.app import download_report
+
+        outside_report = tmp_path.parent / "outside.md"
+        outside_report.write_text("# Outside")
+
+        with patch("web.app.REPORTS_DIR", tmp_path):
+            with pytest.raises(HTTPException) as exc_info:
+                await download_report("../outside.md")
+
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_download_report_rejects_non_markdown(self, tmp_path):
+        from web.app import download_report
+
+        with patch("web.app.REPORTS_DIR", tmp_path):
+            with pytest.raises(HTTPException) as exc_info:
+                await download_report("notes.txt")
+
+        assert exc_info.value.status_code == 400
