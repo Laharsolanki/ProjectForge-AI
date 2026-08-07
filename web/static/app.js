@@ -56,6 +56,7 @@ async function initSession() {
         sessionId = data.session_id;
         sessionBadge.textContent = `Session: ${sessionId.slice(0, 8)}...`;
         connectWebSocket();
+        updateStageTracker("discovery");
     } catch (err) {
         sessionBadge.textContent = "Session: failed to create";
         console.error("Failed to create session:", err);
@@ -120,6 +121,9 @@ function handleAgentMessage(data) {
             currentStreamDiv = null;
             streamBuffer = "";
             scrollToBottom();
+            if (data.current_stage) {
+                updateStageTracker(data.current_stage);
+            }
             break;
 
         case "error":
@@ -379,4 +383,34 @@ async function openReportsModal() {
     } catch (err) {
         reportsModalBody.innerHTML = '<p class="empty-state">Failed to load reports.</p>';
     }
+}
+
+// ─── Stage Tracker Helper ──────────────────────────────────────────────────
+function updateStageTracker(currentStage) {
+    if (!currentStage) return;
+
+    const stages = ["discovery", "tech_design", "report_generation"];
+    const currentIdx = stages.indexOf(currentStage);
+
+    stages.forEach((stage, idx) => {
+        const stageDiv = document.querySelector(`.stage[data-stage="${stage}"]`);
+        if (!stageDiv) return;
+
+        const dot = stageDiv.querySelector(".stage-dot");
+        if (!dot) return;
+
+        // Reset classes
+        dot.className = "stage-dot";
+        stageDiv.classList.remove("active", "completed");
+
+        if (idx < currentIdx) {
+            dot.classList.add("completed");
+            stageDiv.classList.add("completed");
+        } else if (idx === currentIdx) {
+            dot.classList.add("active");
+            stageDiv.classList.add("active");
+        } else {
+            dot.classList.add("pending");
+        }
+    });
 }

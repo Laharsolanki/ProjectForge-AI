@@ -69,3 +69,8 @@ logs/
 *.tmp
 *.temp
 .cache/
+
+
+.codex-history
+.claude-code-history
+reports

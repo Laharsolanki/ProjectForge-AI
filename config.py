@@ -47,15 +47,11 @@ PDF_EXPORT_ENABLED = False  # Set to True if weasyprint is installed
 STAGES = [
     "discovery",
     "tech_design",
-    "risk_analysis",
-    "learning_path",
     "report_generation",
 ]
 
 STAGE_LABELS = {
     "discovery": "🔍 Discovery",
-    "tech_design": "🏗️ Technical Design",
-    "risk_analysis": "⚠️ Risk Analysis",
-    "learning_path": "📚 Learning Path",
+    "tech_design": "🏗️ Stack Recommendation",
     "report_generation": "📋 Report Generation",
 }

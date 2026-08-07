@@ -168,9 +168,45 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                                 })
 
                 # Signal completion
+                current_stage = "discovery"
+                try:
+                    updated_session = await session_service.get_session(
+                        app_name=AGENT_APP_NAME,
+                        user_id=DEFAULT_USER_ID,
+                        session_id=session_id,
+                    )
+                    if updated_session and updated_session.state:
+                        state = updated_session.state
+                        if "final_report" in state:
+                            current_stage = "report_generation"
+                        elif "tech_design" in state:
+                            current_stage = "report_generation"
+                        elif "discovery_report" in state:
+                            current_stage = "tech_design"
+                        else:
+                            current_stage = "discovery"
+
+                        # Persist back to sqlite
+                        import sqlite3
+                        db_path = BASE_DIR / "memory" / "sessions.db"
+                        state["current_stage"] = current_stage
+                        conn = sqlite3.connect(db_path)
+                        try:
+                            cursor = conn.cursor()
+                            cursor.execute(
+                                "UPDATE sessions SET state = ? WHERE id = ?",
+                                (json.dumps(state), session_id)
+                            )
+                            conn.commit()
+                        finally:
+                            conn.close()
+                except Exception:
+                    pass
+
                 await websocket.send_json({
                     "type": "done",
                     "full_text": full_response,
+                    "current_stage": current_stage,
                 })
 
             except Exception as e:

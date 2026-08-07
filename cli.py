@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+import json
 
 from rich.console import Console
 from rich.markdown import Markdown
@@ -56,7 +57,7 @@ BANNER = r"""
   ║   ██║     ██║  ██║╚██████╔╝╚█████╔╝███████╗╚██████╔╝      ║
   ║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝  ╚════╝ ╚══════╝ ╚═════╝      ║
   ║                                                           ║
-  ║          [bold cyan]ProjectForge AI[/bold cyan] — Software Architect Agent        ║
+  ║       [bold cyan]ProjectForge AI[/bold cyan] — Student Stack Recommender       ║
   ║                                                           ║
   ╚═══════════════════════════════════════════════════════════╝
 [/bold blue]
@@ -110,10 +111,10 @@ async def run_cli() -> None:
     console.print(BANNER)
     console.print(
         Panel(
-            "[bold]Welcome to ProjectForge AI![/bold]\n\n"
-            "I'm your senior software architect. Tell me about your project idea, "
-            "and I'll help you design a complete, production-ready solution.\n\n"
-            "Type [cyan]/help[/cyan] for commands, or just start describing your project.",
+            "[bold]Welcome to ProjectForge AI's Student Stack Recommender![/bold]\n\n"
+            "I'm here to help you choose a technology stack that deliberately teaches you something new.\n"
+            "Tell me about your project idea, and let's find the best tools for you to learn!\n\n"
+            "Type [cyan]/help[/cyan] for commands, or just start describing your project idea.",
             border_style="blue",
             padding=(1, 2),
         )
@@ -247,7 +248,30 @@ async def run_cli() -> None:
                 session_id=session_id,
             )
             if updated_session and updated_session.state:
-                current_stage = updated_session.state.get("current_stage", current_stage)
+                state = updated_session.state
+                if "final_report" in state:
+                    current_stage = "report_generation"
+                elif "tech_design" in state:
+                    current_stage = "report_generation"
+                elif "discovery_report" in state:
+                    current_stage = "tech_design"
+                else:
+                    current_stage = "discovery"
+
+                # Persist back to sqlite
+                import sqlite3
+                db_path = BASE_DIR / "memory" / "sessions.db"
+                state["current_stage"] = current_stage
+                conn = sqlite3.connect(db_path)
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "UPDATE sessions SET state = ? WHERE id = ?",
+                        (json.dumps(state), session_id)
+                    )
+                    conn.commit()
+                finally:
+                    conn.close()
         except Exception:
             pass
 

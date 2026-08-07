@@ -44,26 +44,32 @@ class CloudProvider(str, Enum):
 
 class DiscoveryReport(BaseModel):
     """Output of the Discovery Agent — captures the project understanding."""
-    problem_statement: str = Field(
+    problem_statement: Optional[str] = Field(
+        default=None,
         description="The problem reframed in the agent's own words"
     )
-    target_users: str = Field(
+    target_users: Optional[str] = Field(
+        default=None,
         description="Who the users are and their technical level"
     )
-    success_metrics: str = Field(
+    success_metrics: Optional[str] = Field(
+        default=None,
         description="How success is measured (revenue, users, time saved)"
     )
-    timeline: str = Field(
+    timeline: Optional[str] = Field(
+        default=None,
         description="When the project needs to be live"
     )
-    team_size: str = Field(
+    team_size: Optional[str] = Field(
+        default=None,
         description="Team size and skill set"
     )
     budget: Optional[str] = Field(
         default=None,
         description="Budget constraints, if any"
     )
-    scale_expectations: str = Field(
+    scale_expectations: Optional[str] = Field(
+        default=None,
         description="Expected scale (10 users or 10 million)"
     )
     existing_systems: Optional[str] = Field(
@@ -80,6 +86,31 @@ class DiscoveryReport(BaseModel):
     open_questions: list[str] = Field(
         default_factory=list,
         description="Remaining clarifying questions"
+    )
+    # New fields for student stack recommender
+    project_idea: Optional[str] = Field(
+        default=None,
+        description="The student's project idea in detail"
+    )
+    learning_focus: list[str] = Field(
+        default_factory=list,
+        description="List of areas the student wants to learn (Frontend, Backend, Database)"
+    )
+    familiar_technologies: list[str] = Field(
+        default_factory=list,
+        description="Technologies the student is already familiar with"
+    )
+    preferred_language: Optional[str] = Field(
+        default=None,
+        description="Preferred programming language"
+    )
+    expected_users: Optional[str] = Field(
+        default=None,
+        description="Expected user scale"
+    )
+    assumptions: list[str] = Field(
+        default_factory=list,
+        description="Assumptions made by the agent for missing optional inputs"
     )
 
 
@@ -156,10 +187,12 @@ class Milestone(BaseModel):
 
 class TechDesign(BaseModel):
     """Complete technical design output."""
-    architecture_pattern: str = Field(
+    architecture_pattern: Optional[str] = Field(
+        default=None,
         description="Monolith, Microservices, Serverless, etc."
     )
-    architecture_reasoning: str = Field(
+    architecture_reasoning: Optional[str] = Field(
+        default=None,
         description="Why this pattern was chosen with tradeoff analysis"
     )
     tech_stack: list[TechStackItem] = Field(default_factory=list)

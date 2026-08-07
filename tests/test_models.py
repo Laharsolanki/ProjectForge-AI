@@ -74,6 +74,24 @@ class TestDiscoveryReport:
         restored = DiscoveryReport.model_validate(data)
         assert restored.confidence == Confidence.LOW
 
+    def test_student_fields(self):
+        report = DiscoveryReport(
+            project_idea="Build a personal task manager website",
+            learning_focus=["Frontend", "Database"],
+            familiar_technologies=["Python", "HTML/CSS"],
+            preferred_language="JavaScript",
+            expected_users="under 100",
+            assumptions=["Assume frontend should use interactive elements", "Assume SQLite is fine"],
+            confidence=Confidence.HIGH,
+        )
+        assert report.project_idea == "Build a personal task manager website"
+        assert "Frontend" in report.learning_focus
+        assert "Python" in report.familiar_technologies
+        assert report.preferred_language == "JavaScript"
+        assert report.expected_users == "under 100"
+        assert len(report.assumptions) == 2
+        assert report.confidence == Confidence.HIGH
+
 
 class TestTechDesign:
     def test_create_tech_stack(self):

@@ -8,7 +8,7 @@ from google.adk.agents import LlmAgent
 
 from config import ORCHESTRATOR_MODEL
 from prompts.tech_design_prompt import TECH_DESIGN_PROMPT
-from tools.cost_estimator import estimate_cloud_costs
+from tools.recommendation_engine import get_supported_technologies
 
 tech_design_agent = LlmAgent(
     name="tech_design_agent",
@@ -16,11 +16,9 @@ tech_design_agent = LlmAgent(
     mode="single_turn",
     instruction=TECH_DESIGN_PROMPT,
     description=(
-        "Senior software architect agent that designs the complete technical "
-        "solution: architecture pattern, specific tech stack, database schema, "
-        "API endpoints, and milestones. Reads the Discovery Report for context. "
-        "Use this agent after Discovery is complete with high confidence."
+        "Specialized stack recommender agent that designs technology stacks "
+        "specifically tailored to help students learn something new."
     ),
-    tools=[estimate_cloud_costs],
+    tools=[get_supported_technologies],
     output_key="tech_design",
 )

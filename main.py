@@ -18,6 +18,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def main():
+    # Force UTF-8 encoding on standard output/error to prevent UnicodeEncodeError on Windows
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+
     args = sys.argv[1:]
 
     if not args or args[0] == "cli":
