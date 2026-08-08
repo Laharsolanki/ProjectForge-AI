@@ -25,11 +25,29 @@ MEMORY_DIR.mkdir(exist_ok=True)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
+from google.adk.models.google_llm import Gemini
+from google.genai import types as genai_types
+
 # ─── Model Configuration ─────────────────────────────────────────────────────
+# Automatic exponential backoff & retry configuration for transient 429/408/5xx errors
+_RETRY_OPTIONS = genai_types.HttpRetryOptions(
+    attempts=5,
+    initial_delay=2.0,
+    max_delay=60.0,
+    exp_base=2.0,
+    jitter=1.0,
+)
+
 # Strong model for orchestrator and complex reasoning
-ORCHESTRATOR_MODEL = os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-flash")
+ORCHESTRATOR_MODEL = Gemini(
+    model=os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-flash"),
+    retry_options=_RETRY_OPTIONS,
+)
 # Lighter model for focused sub-agents
-WORKER_MODEL = os.getenv("WORKER_MODEL", "gemini-2.5-flash")
+WORKER_MODEL = Gemini(
+    model=os.getenv("WORKER_MODEL", "gemini-2.5-flash"),
+    retry_options=_RETRY_OPTIONS,
+)
 
 # ─── Agent Settings ──────────────────────────────────────────────────────────
 AGENT_APP_NAME = "projectforge"

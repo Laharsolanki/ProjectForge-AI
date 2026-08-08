@@ -7,6 +7,7 @@ Specialized agent for Stage 1: understanding the user's real problem.
 from google.adk.agents import LlmAgent
 
 from config import WORKER_MODEL
+from models import DiscoveryTurn
 from prompts.discovery_prompt import DISCOVERY_PROMPT
 
 discovery_agent = LlmAgent(
@@ -15,10 +16,9 @@ discovery_agent = LlmAgent(
     mode="single_turn",
     instruction=DISCOVERY_PROMPT,
     description=(
-        "Specialized discovery agent that understands the user's project idea "
-        "through targeted questioning. Produces a Discovery Report with problem "
-        "statement, users, metrics, constraints, and confidence level. "
-        "Use this agent when starting a new project analysis."
+        "Specialized discovery agent that interviews the student to capture their "
+        "project idea, learning goals, and familiar technologies."
     ),
+    output_schema=DiscoveryTurn,
     output_key="discovery_report",
 )

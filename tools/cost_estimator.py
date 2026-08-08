@@ -131,8 +131,10 @@ def estimate_cloud_costs(
     if provider not in ("aws", "gcp", "azure"):
         provider = "aws"
 
-    scale = scale.lower()
-    multiplier = SCALE_MULTIPLIERS.get(scale, 1.0)
+    raw_scale = scale.lower().strip()
+    scale_recognized = raw_scale in SCALE_MULTIPLIERS
+    scale = raw_scale if scale_recognized else "small"
+    multiplier = SCALE_MULTIPLIERS[scale]
 
     # Determine compute/db size based on scale
     if scale in ("tiny", "small"):
@@ -215,11 +217,17 @@ def estimate_cloud_costs(
 
     assumptions = [
         f"Pricing is approximate and based on {provider.upper()} public pricing (2025-2026)",
-        f"Scale assumption: {scale} ({SCALE_MULTIPLIERS[scale]}x base capacity)",
+        f"Scale assumption: {scale} ({multiplier}x base capacity)",
+    ]
+    if not scale_recognized:
+        assumptions.append(
+            f"Note: Unrecognized scale '{raw_scale}' defaulted to 'small' for cost calculation."
+        )
+    assumptions.extend([
         "Does not include data transfer/egress costs (can add 10-30%)",
         "Does not include CI/CD pipeline costs",
         "Reserved/committed pricing not applied (on-demand rates)",
-    ]
+    ])
 
     return {
         "provider": provider.upper(),

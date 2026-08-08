@@ -6,8 +6,10 @@ Validates model creation, serialization, and constraint enforcement.
 
 import pytest
 from models import (
-    DiscoveryReport,
     Confidence,
+    DiscoveryStatus,
+    DiscoveryReport,
+    DiscoveryTurn,
     TechStackItem,
     DatabaseTable,
     DatabaseColumn,
@@ -32,40 +34,35 @@ from models import (
 class TestDiscoveryReport:
     def test_create_valid_report(self):
         report = DiscoveryReport(
-            problem_statement="Users need a way to track expenses",
-            target_users="Small business owners, non-technical",
-            success_metrics="1000 users in 3 months",
-            timeline="3 months",
-            team_size="2 developers",
-            scale_expectations="1K-10K users",
-            key_constraints=["Tight timeline", "Small team", "No budget for infra"],
+            project_idea="A collaborative real-time code editor",
+            learning_focus=["Backend", "Database"],
+            familiar_technologies=["Python", "JavaScript"],
+            timeline="2 weeks",
+            preferred_language="Go",
+            expected_users="50 developers",
             confidence=Confidence.HIGH,
         )
         assert report.confidence == Confidence.HIGH
-        assert len(report.key_constraints) == 3
+        assert report.project_idea == "A collaborative real-time code editor"
+        assert len(report.learning_focus) == 2
 
     def test_optional_fields_default(self):
         report = DiscoveryReport(
-            problem_statement="test",
-            target_users="test",
-            success_metrics="test",
-            timeline="test",
-            team_size="test",
-            scale_expectations="test",
-            confidence=Confidence.MEDIUM,
+            project_idea="Task tracker",
+            learning_focus=["Frontend"],
+            familiar_technologies=["HTML/CSS"],
         )
-        assert report.budget is None
-        assert report.existing_systems is None
+        assert report.timeline == "2 weeks (typical MVP scope)"
+        assert report.expected_users == "under 100 users"
         assert report.open_questions == []
+        assert report.assumptions == []
+        assert report.confidence == Confidence.HIGH
 
     def test_serialization(self):
         report = DiscoveryReport(
-            problem_statement="test",
-            target_users="test",
-            success_metrics="test",
-            timeline="test",
-            team_size="test",
-            scale_expectations="test",
+            project_idea="Expense manager",
+            learning_focus=["Database"],
+            familiar_technologies=["Python"],
             confidence=Confidence.LOW,
         )
         data = report.model_dump()
@@ -74,23 +71,29 @@ class TestDiscoveryReport:
         restored = DiscoveryReport.model_validate(data)
         assert restored.confidence == Confidence.LOW
 
-    def test_student_fields(self):
-        report = DiscoveryReport(
-            project_idea="Build a personal task manager website",
-            learning_focus=["Frontend", "Database"],
-            familiar_technologies=["Python", "HTML/CSS"],
-            preferred_language="JavaScript",
-            expected_users="under 100",
-            assumptions=["Assume frontend should use interactive elements", "Assume SQLite is fine"],
-            confidence=Confidence.HIGH,
+    def test_discovery_turn_gathering_info(self):
+        turn = DiscoveryTurn(
+            status=DiscoveryStatus.GATHERING_INFO,
+            message_to_user="What programming languages are you familiar with?",
+            report=None,
         )
-        assert report.project_idea == "Build a personal task manager website"
-        assert "Frontend" in report.learning_focus
-        assert "Python" in report.familiar_technologies
-        assert report.preferred_language == "JavaScript"
-        assert report.expected_users == "under 100"
-        assert len(report.assumptions) == 2
-        assert report.confidence == Confidence.HIGH
+        assert turn.status == DiscoveryStatus.GATHERING_INFO
+        assert turn.report is None
+        assert "familiar" in turn.message_to_user
+
+    def test_discovery_turn_ready(self):
+        turn = DiscoveryTurn(
+            status=DiscoveryStatus.READY,
+            message_to_user="Great! Discovery is complete.",
+            report=DiscoveryReport(
+                project_idea="Real-time chat",
+                learning_focus=["Backend"],
+                familiar_technologies=["Python"],
+            ),
+        )
+        assert turn.status == DiscoveryStatus.READY
+        assert turn.report is not None
+        assert turn.report.project_idea == "Real-time chat"
 
 
 class TestTechDesign:
@@ -100,9 +103,12 @@ class TestTechDesign:
             technology="FastAPI",
             version="0.115.0",
             justification="Async, high performance, good for APIs",
+            why_it_teaches="Teaches async Python and typing",
+            why_preferred_over_familiar="More modern than Flask",
         )
         assert item.category == "Backend"
         assert item.version == "0.115.0"
+        assert item.why_it_teaches == "Teaches async Python and typing"
 
     def test_create_database_schema(self):
         schema = DatabaseSchema(
@@ -225,12 +231,9 @@ class TestProjectReport:
             project_name="Expense Tracker",
             executive_summary="An expense tracking SaaS application.",
             discovery=DiscoveryReport(
-                problem_statement="test",
-                target_users="test",
-                success_metrics="test",
-                timeline="test",
-                team_size="test",
-                scale_expectations="test",
+                project_idea="Expense Tracker",
+                learning_focus=["Backend"],
+                familiar_technologies=["Python"],
                 confidence=Confidence.HIGH,
             ),
             next_steps=["Set up repo", "Configure CI/CD"],

@@ -2,15 +2,15 @@
 
 # 🏗️ ProjectForge AI
 
-### Multi-Agent Software Architect Powered by Google ADK + Gemini
+### Student Technology Stack Recommender & System Architect Powered by Google ADK + Gemini
 
 [![Python 3.13+](https://img.shields.io/badge/Python-3.13%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.3.0-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://google.github.io/adk-docs/)
 [![Gemini](https://img.shields.io/badge/Gemini-2.5-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-28%2F28%20Passing-success?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-Passing-success?style=for-the-badge)](tests/)
 
-*Tell me your project idea. I'll give you a complete architecture document.*
+*Tell me your project idea and what you know. I'll recommend tools that teach you something new.*
 
 </div>
 
@@ -18,23 +18,21 @@
 
 ## 📋 What Is This?
 
-**ProjectForge AI** is a multi-agent AI system that acts as your **senior software architect**. You describe a project idea — even a vague one — and it takes you through a structured 5-stage analysis to produce a professional, shareable project document.
+**ProjectForge AI** is a multi-agent AI system designed to act as a **student-centric software architect and technical mentor**. You describe a project idea and your current technical skillset, and the system guides you through a structured 3-stage workflow to produce a personalized, buildable learning roadmap and architecture document.
 
-It doesn't just answer questions. It **asks incisive questions**, **challenges assumptions**, **surfaces hidden risks**, and **suggests strategies you haven't considered**.
+It doesn't just recommend what is easiest — it **deliberately selects modern tools that teach new programming and architectural paradigms** (e.g., Svelte's compiler-based reactivity, Go's lightweight concurrency, Supabase's Row Level Security).
 
-### The 5-Stage Workflow
+### The 3-Stage Workflow
 
 ```
-🔍 Discovery → 🏗️ Technical Design → ⚠️ Risk Analysis → 📚 Learning Path → 📋 Report
+🔍 Discovery → 🏗️ Stack Recommendation → 📋 Report Generation
 ```
 
 | Stage | What Happens |
-|-------|-------------|
-| **Discovery** | Agent interviews you to understand the *real* problem (not just your stated idea) |
-| **Technical Design** | Architecture pattern, tech stack, database schema, API endpoints, milestones |
-| **Risk Analysis** | 5-10 specific failure modes with impact, probability, and mitigations |
-| **Learning Path** | Personalized resources for your team to learn the recommended stack |
-| **Report** | Professional Markdown document you can share with stakeholders |
+|---|---|
+| **Discovery** | Agent interviews you about your project idea, learning goals (Frontend, Backend, Database), and familiar tools |
+| **Stack Recommendation** | Recommends tools from a curated catalog, contrasting new paradigms with your familiar stack and designing data schemas & APIs |
+| **Report Generation** | Assembles a shareable, professional Markdown learning roadmap with Mermaid architecture diagrams |
 
 ---
 
@@ -42,27 +40,26 @@ It doesn't just answer questions. It **asks incisive questions**, **challenges a
 
 ```mermaid
 graph TD
-    U[👤 User] --> CLI[Rich CLI]
-    U --> WEB[Web UI]
-    CLI --> ORCH[🎯 Master Orchestrator<br/>gemini-2.5-pro]
+    U[👤 Student / Developer] --> CLI[Rich CLI]
+    U --> WEB[FastAPI Web UI]
+    CLI --> ORCH[🎯 Master Orchestrator<br/>gemini-2.5-flash]
     WEB --> ORCH
     ORCH --> DISC[🔍 Discovery Agent<br/>gemini-2.5-flash]
-    ORCH --> TECH[🏗️ Tech Design Agent<br/>gemini-2.5-pro]
-    ORCH --> RISK[⚠️ Risk Analysis Agent<br/>gemini-2.5-flash]
+    ORCH --> TECH[🏗️ Tech Design Agent<br/>gemini-2.5-flash]
     ORCH --> REPORT[📋 Report Generator<br/>gemini-2.5-flash]
-    TECH --> COST[💰 Cost Estimator Tool]
+    TECH --> CURATED[📚 Curated Stack Catalog]
+    TECH --> DIAGRAM[📊 Mermaid Diagram Tool]
     REPORT --> SAVE[💾 Save Report Tool]
     ORCH --> GH[🐙 GitHub Tools]
     ORCH --> MEM[🧠 Memory Tools]
-    MEM --> DB[(SQLite)]
+    MEM --> DB[(SQLite Sessions)]
 ```
 
-**Key Design Decisions:**
-- **Google ADK** for multi-agent orchestration (sub-agent delegation pattern)
-- **Gemini 2.5 Pro** for the orchestrator and complex design reasoning
-- **Gemini 2.5 Flash** for focused sub-agents (faster, cheaper)
-- **SQLite** for session persistence (zero-config, survives restarts)
-- **Dual interfaces** — CLI for developers, Web UI for visual users
+**Key Architectural Features:**
+- **Google ADK** multi-agent orchestration with structured `DiscoveryTurn` state transitions.
+- **Gemini 2.5 Flash** with native exponential backoff and retry handling (`HttpRetryOptions`).
+- **SQLite Session Persistence** via `DatabaseSessionService` across CLI and Web.
+- **Real-time Dual Interfaces** — Rich interactive terminal CLI and FastAPI + WebSocket Web UI.
 
 ---
 
@@ -70,7 +67,7 @@ graph TD
 
 ### Prerequisites
 - Python 3.10 or higher
-- [Google Gemini API Key](https://aistudio.google.com/apikey) (free tier available)
+- [Google Gemini API Key](https://aistudio.google.com/apikey)
 
 ### Installation
 
@@ -93,21 +90,18 @@ pip install -r requirements.txt
 copy .env.example .env        # Windows
 # cp .env.example .env        # macOS/Linux
 
-# Edit .env and add your Gemini API key
+# Edit .env and add your GOOGLE_API_KEY
 ```
 
 ### Run
 
 ```bash
-# Interactive CLI (recommended for first use)
+# Interactive CLI
 python main.py cli
 
 # Web interface
-python main.py web
+python main.py web --port 8000
 # Open http://127.0.0.1:8000 in your browser
-
-# ADK Dev Tools (inspect agent execution)
-adk web agents
 ```
 
 ---
@@ -118,126 +112,67 @@ adk web agents
 ProjectForge-AI/
 ├── agents/                  # Agent definitions
 │   ├── orchestrator.py      # Master orchestrator (root agent)
-│   ├── discovery.py         # Stage 1: Problem understanding
-│   ├── tech_design.py       # Stage 2: Architecture design
-│   ├── risk_analysis.py     # Stage 3: Risk identification
-│   └── report_generator.py  # Stage 5: Document assembly
+│   ├── discovery.py         # Stage 1: Problem & learning goals discovery
+│   ├── tech_design.py       # Stage 2: Stack selection & system architecture
+│   └── report_generator.py  # Stage 3: Markdown roadmap assembly
 ├── prompts/                 # System prompts for each agent
 │   ├── orchestrator_prompt.py
 │   ├── discovery_prompt.py
 │   ├── tech_design_prompt.py
-│   ├── risk_prompt.py
 │   └── report_prompt.py
 ├── tools/                   # Custom ADK tools
+│   ├── recommendation_engine.py # Curated modern technologies database
 │   ├── cost_estimator.py    # Cloud cost estimation (AWS/GCP/Azure)
 │   ├── github_tools.py      # Repo & issue creation
 │   ├── report_tools.py      # Report saving & Mermaid diagrams
-│   └── memory_tools.py      # Cross-session project memory
+│   └── memory_tools.py      # Session memory & project summaries
 ├── web/                     # Web interface
-│   ├── app.py               # FastAPI server + WebSocket
-│   ├── templates/index.html # Chat UI
+│   ├── app.py               # FastAPI server + WebSocket streaming
+│   ├── templates/index.html # Chat UI with stage trackers
 │   └── static/              # CSS + JavaScript
-├── tests/                   # Unit tests (28 tests)
-│   ├── test_tools.py
-│   └── test_models.py
-├── memory/                  # Persisted project data (auto-created)
-├── reports/                 # Generated reports (auto-created)
-├── config.py                # Centralized configuration
-├── models.py                # Pydantic data models (15 models)
+├── tests/                   # Automated pytest suite
+│   ├── test_tech_design.py
+│   ├── test_models.py
+│   └── test_tools.py
+├── memory/                  # Persisted SQLite session data
+├── reports/                 # Generated Markdown reports
+├── config.py                # Centralized configuration & retry options
+├── models.py                # Pydantic data schemas
 ├── cli.py                   # Rich terminal interface
-├── main.py                  # Entry point
-└── requirements.txt         # Python dependencies
+└── main.py                  # CLI & Web entry point
 ```
-
----
-
-## 🛠️ Custom Tools
-
-| Tool | Purpose | Requires API? |
-|------|---------|--------------|
-| **Cost Estimator** | Estimates monthly cloud costs for AWS/GCP/Azure based on services and scale | ❌ Offline (heuristic pricing tables) |
-| **GitHub Tools** | Creates repositories and issues from generated milestones | ✅ `GITHUB_TOKEN` (optional) |
-| **Report Tools** | Saves reports as Markdown, generates Mermaid architecture diagrams | ❌ Local filesystem |
-| **Memory Tools** | Saves/loads project summaries across sessions | ❌ Local JSON files |
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run all unit tests
 python -m pytest tests/ -v
-
-# Expected: 28 passed
 ```
 
 Tests cover:
-- ✅ Pydantic model creation, serialization, and roundtrip parsing
-- ✅ Cost estimator across all providers and scales
-- ✅ Report saving with filename sanitization
-- ✅ Mermaid diagram generation
-- ✅ Memory save/load/list operations
+- ✅ Pydantic model serialization, validation, and dual-state discovery turns
+- ✅ Curated stack filtering and architectural patterns
+- ✅ Cost estimation with safe scale fallbacks
+- ✅ Report file persistence and Mermaid diagram generation
+- ✅ Memory tools and project persistence
 
 ---
 
 ## ⚙️ Configuration
 
 | Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
+|---|---|---|---|
 | `GOOGLE_API_KEY` | ✅ Yes | — | Gemini API key from [AI Studio](https://aistudio.google.com/apikey) |
 | `GITHUB_TOKEN` | ❌ No | — | GitHub PAT for repo/issue creation |
-| `ORCHESTRATOR_MODEL` | ❌ No | `gemini-2.5-pro` | Model for orchestrator + tech design |
+| `ORCHESTRATOR_MODEL` | ❌ No | `gemini-2.5-flash` | Model for orchestrator and tech design |
 | `WORKER_MODEL` | ❌ No | `gemini-2.5-flash` | Model for sub-agents |
 | `WEB_HOST` | ❌ No | `127.0.0.1` | Web server bind address |
 | `WEB_PORT` | ❌ No | `8000` | Web server port |
 
 ---
 
-## 📊 Technology Stack
-
-| Category | Technology | Version |
-|----------|-----------|---------|
-| Runtime | Python | 3.13+ |
-| AI Framework | Google ADK | 2.3.0 |
-| LLM Provider | Google Gemini | 2.5 Pro + Flash |
-| Web Framework | FastAPI | 0.138 |
-| CLI Framework | Rich | 15.0 |
-| Data Validation | Pydantic | 2.13 |
-| Session Storage | SQLite | Built-in |
-| Testing | pytest | 9.1 |
-| GitHub API | PyGithub | 2.9 |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [Google ADK](https://google.github.io/adk-docs/) — Agent Development Kit
-- [Google Gemini](https://ai.google.dev/) — Large Language Model
-- [FastAPI](https://fastapi.tiangolo.com/) — Modern Python web framework
-- [Rich](https://rich.readthedocs.io/) — Beautiful terminal formatting
-
----
-
-<div align="center">
-
-**Built with ❤️ using Google ADK + Gemini**
-
-</div>

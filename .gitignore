@@ -4,10 +4,9 @@
 
 # ─── Secrets & Environment ────────────────────────────────────
 .env
-PROJECT_CONTEXT.md
-
 .env.local
 .env.production
+PROJECT_CONTEXT.md
 *.key
 *.pem
 
@@ -52,25 +51,22 @@ Desktop.ini
 # ─── Jupyter ──────────────────────────────────────────────────
 .ipynb_checkpoints/
 
-# ─── Local Database ──────────────────────────────────────────
+# ─── Local Databases & Scratch Files ─────────────────────────
 memory/sessions.db
 memory/*.db
+test_sessions.db
+*.db
+test.py
 
-# ─── Generated Reports (keep the directory, ignore contents) ─
-# Uncomment the next line if you don't want reports in Git:
-# reports/*.md
-
-# ─── Logs ─────────────────────────────────────────────────────
+# ─── Generated Reports & Logs ─────────────────────────────────
+reports/
 *.log
 logs/
 
-# ─── Misc ─────────────────────────────────────────────────────
+# ─── Misc & AI Workspace Histories ───────────────────────────
 *.bak
 *.tmp
 *.temp
 .cache/
-
-
-.codex-history
-.claude-code-history
-reports
+.codex-history/
+.claude-code-history/

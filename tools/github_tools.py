@@ -94,13 +94,15 @@ def create_github_issues(
         repo = user.get_repo(repo_name)
 
         created = []
+        existing_labels = {l.name for l in repo.get_labels()}
+
         for issue_data in issues_data:
             labels = issue_data.get("labels", [])
             # Create labels if they don't exist
-            existing_labels = [l.name for l in repo.get_labels()]
             for label in labels:
                 if label not in existing_labels:
                     repo.create_label(name=label, color="0366d6")
+                    existing_labels.add(label)
 
             issue = repo.create_issue(
                 title=issue_data["title"],

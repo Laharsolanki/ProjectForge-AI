@@ -42,56 +42,14 @@ class CloudProvider(str, Enum):
 
 # ─── Discovery Models ────────────────────────────────────────────────────────
 
+class DiscoveryStatus(str, Enum):
+    GATHERING_INFO = "gathering_info"
+    READY = "ready"
+
+
 class DiscoveryReport(BaseModel):
-    """Output of the Discovery Agent — captures the project understanding."""
-    problem_statement: Optional[str] = Field(
-        default=None,
-        description="The problem reframed in the agent's own words"
-    )
-    target_users: Optional[str] = Field(
-        default=None,
-        description="Who the users are and their technical level"
-    )
-    success_metrics: Optional[str] = Field(
-        default=None,
-        description="How success is measured (revenue, users, time saved)"
-    )
-    timeline: Optional[str] = Field(
-        default=None,
-        description="When the project needs to be live"
-    )
-    team_size: Optional[str] = Field(
-        default=None,
-        description="Team size and skill set"
-    )
-    budget: Optional[str] = Field(
-        default=None,
-        description="Budget constraints, if any"
-    )
-    scale_expectations: Optional[str] = Field(
-        default=None,
-        description="Expected scale (10 users or 10 million)"
-    )
-    existing_systems: Optional[str] = Field(
-        default=None,
-        description="What's already built or needs integration"
-    )
-    key_constraints: list[str] = Field(
-        default_factory=list,
-        description="Top 3-5 constraints/risks identified"
-    )
-    confidence: Confidence = Field(
-        description="Agent's confidence level in understanding"
-    )
-    open_questions: list[str] = Field(
-        default_factory=list,
-        description="Remaining clarifying questions"
-    )
-    # New fields for student stack recommender
-    project_idea: Optional[str] = Field(
-        default=None,
-        description="The student's project idea in detail"
-    )
+    """Final output of the Discovery Agent — populated only once discovery is complete."""
+    project_idea: str = Field(description="The student's project idea in detail")
     learning_focus: list[str] = Field(
         default_factory=list,
         description="List of areas the student wants to learn (Frontend, Backend, Database)"
@@ -100,17 +58,45 @@ class DiscoveryReport(BaseModel):
         default_factory=list,
         description="Technologies the student is already familiar with"
     )
+    timeline: str = Field(
+        default="2 weeks (typical MVP scope)",
+        description="When the project needs to be live"
+    )
     preferred_language: Optional[str] = Field(
         default=None,
         description="Preferred programming language"
     )
     expected_users: Optional[str] = Field(
-        default=None,
+        default="under 100 users",
         description="Expected user scale"
     )
     assumptions: list[str] = Field(
         default_factory=list,
         description="Assumptions made by the agent for missing optional inputs"
+    )
+    confidence: Confidence = Field(
+        default=Confidence.HIGH,
+        description="Agent's confidence level in understanding"
+    )
+    open_questions: list[str] = Field(
+        default_factory=list,
+        description="Remaining clarifying questions, if any"
+    )
+
+
+class DiscoveryTurn(BaseModel):
+    """Wrapper for every Discovery Agent turn.
+    status='gathering_info' while still interviewing, status='ready' once the
+    DiscoveryReport is complete. Lets orchestrator & UI check status reliably."""
+    status: DiscoveryStatus = Field(
+        description="gathering_info while interviewing, ready once complete"
+    )
+    message_to_user: str = Field(
+        description="The conversational message or questions to present to the user"
+    )
+    report: Optional[DiscoveryReport] = Field(
+        default=None,
+        description="Populated ONLY when status == 'ready'"
     )
 
 

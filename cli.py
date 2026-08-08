@@ -223,11 +223,15 @@ async def run_cli() -> None:
                 session_id=session_id,
                 new_message=user_content,
             ):
-                # Collect text from agent responses
+                # Filter to only the root orchestrator's conversational events
+                if event.author and event.author != root_agent.name:
+                    continue
                 if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if part.text:
-                            full_response += part.text
+                    chunk = "".join(part.text for part in event.content.parts if part.text)
+                    if chunk:
+                        if full_response and not full_response.endswith("\n\n"):
+                            full_response += "\n\n"
+                        full_response += chunk
 
         # Display the response
         if full_response.strip():
@@ -249,11 +253,18 @@ async def run_cli() -> None:
             )
             if updated_session and updated_session.state:
                 state = updated_session.state
+                discovery_state = state.get("discovery_report")
+                discovery_ready = False
+                if isinstance(discovery_state, dict):
+                    discovery_ready = discovery_state.get("status") == "ready"
+                elif hasattr(discovery_state, "status"):
+                    discovery_ready = getattr(discovery_state, "status") == "ready"
+
                 if "final_report" in state:
                     current_stage = "report_generation"
                 elif "tech_design" in state:
                     current_stage = "report_generation"
-                elif "discovery_report" in state:
+                elif discovery_ready:
                     current_stage = "tech_design"
                 else:
                     current_stage = "discovery"

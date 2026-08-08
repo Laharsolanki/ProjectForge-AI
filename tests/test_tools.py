@@ -62,6 +62,18 @@ class TestCostEstimator:
         )
         assert result["provider"] == "AWS"
 
+    def test_unrecognized_scale_defaults_to_small_with_warning(self):
+        from tools.cost_estimator import estimate_cloud_costs
+
+        result = estimate_cloud_costs(
+            services="compute,database",
+            scale="enormous_enterprise_tier",
+            provider="aws",
+        )
+        assert result["scale"] == "small"
+        assert result["total_monthly_usd"] > 0
+        assert any("defaulted to 'small'" in a for a in result["assumptions"])
+
     def test_storage_estimation(self):
         from tools.cost_estimator import estimate_cloud_costs
 
