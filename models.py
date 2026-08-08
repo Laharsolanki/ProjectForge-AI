@@ -117,11 +117,23 @@ class DiscoveryReport(BaseModel):
 # ─── Technical Design Models ─────────────────────────────────────────────────
 
 class TechStackItem(BaseModel):
-    """A single technology choice with justification."""
+    """A single technology choice with justification and learning path."""
     category: str = Field(description="e.g., Backend, Frontend, Database")
     technology: str = Field(description="Specific tool/framework name")
     version: Optional[str] = Field(default=None, description="Recommended version")
     justification: str = Field(description="Why this was chosen over alternatives")
+    why_it_teaches: Optional[str] = Field(
+        default=None,
+        description="Key architectural or programming concept this tool teaches"
+    )
+    why_preferred_over_familiar: Optional[str] = Field(
+        default=None,
+        description="Comparison with student's familiar tools"
+    )
+    what_to_learn_first: Optional[str] = Field(
+        default=None,
+        description="Initial learning steps and core topics"
+    )
 
 
 class DatabaseColumn(BaseModel):
@@ -152,7 +164,7 @@ class DatabaseSchema(BaseModel):
 
 class APIEndpoint(BaseModel):
     """An API endpoint definition."""
-    method: str = Field(description="HTTP method (GET, POST, PUT, DELETE)")
+    method: str = Field(description="HTTP method (GET, POST, PUT, DELETE, WS)")
     path: str = Field(description="URL path")
     description: str
     request_body: Optional[str] = Field(default=None, description="Request shape")
@@ -165,7 +177,7 @@ class APIDesign(BaseModel):
     base_url: Optional[str] = None
     auth_mechanism: str = Field(
         default="JWT",
-        description="Authentication mechanism (JWT, OAuth2, API Key)"
+        description="Authentication mechanism (JWT, OAuth2, API Key, RLS)"
     )
     rate_limiting: Optional[str] = None
     endpoints: list[APIEndpoint] = Field(default_factory=list)
@@ -189,7 +201,7 @@ class TechDesign(BaseModel):
     """Complete technical design output."""
     architecture_pattern: Optional[str] = Field(
         default=None,
-        description="Monolith, Microservices, Serverless, etc."
+        description="Monolith, Microservices, Serverless, Decoupled SPA+API, etc."
     )
     architecture_reasoning: Optional[str] = Field(
         default=None,
@@ -199,6 +211,14 @@ class TechDesign(BaseModel):
     database_schema: Optional[DatabaseSchema] = None
     api_design: Optional[APIDesign] = None
     milestones: list[Milestone] = Field(default_factory=list)
+    learning_action_plan: list[str] = Field(
+        default_factory=list,
+        description="Step-by-step roadmap: Day 1 setup, Day 2 core logic, Week 1 milestone"
+    )
+    assumptions: list[str] = Field(
+        default_factory=list,
+        description="Assumptions made regarding missing inputs and scope guardrails"
+    )
     non_obvious_suggestions: list[str] = Field(
         default_factory=list,
         description="Insights the user likely hasn't considered"

@@ -9,6 +9,7 @@ from google.adk.agents import LlmAgent
 from config import ORCHESTRATOR_MODEL
 from prompts.tech_design_prompt import TECH_DESIGN_PROMPT
 from tools.recommendation_engine import get_supported_technologies
+from tools.report_tools import generate_mermaid_diagram
 
 tech_design_agent = LlmAgent(
     name="tech_design_agent",
@@ -19,6 +20,6 @@ tech_design_agent = LlmAgent(
         "Specialized stack recommender agent that designs technology stacks "
         "specifically tailored to help students learn something new."
     ),
-    tools=[get_supported_technologies],
+    tools=[get_supported_technologies, generate_mermaid_diagram],
     output_key="tech_design",
 )
