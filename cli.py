@@ -256,7 +256,9 @@ async def run_cli() -> None:
                 discovery_state = state.get("discovery_report")
                 discovery_ready = False
                 if isinstance(discovery_state, dict):
-                    discovery_ready = discovery_state.get("status") == "ready"
+                    discovery_ready = discovery_state.get("status") == "ready" or "high" in str(discovery_state.get("confidence", "")).lower()
+                elif isinstance(discovery_state, str):
+                    discovery_ready = "confidence: high" in discovery_state.lower() or "confidence:** high" in discovery_state.lower() or '"confidence": "high"' in discovery_state.lower() or "discovery report summary" in discovery_state.lower()
                 elif hasattr(discovery_state, "status"):
                     discovery_ready = getattr(discovery_state, "status") == "ready"
 

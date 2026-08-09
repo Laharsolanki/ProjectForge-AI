@@ -34,31 +34,26 @@ Ask questions to gather the following inputs. Skip any that the student has alre
   - Expected users: "under 100 users (personal/dev scale)"
   - Preferred language: "Open (we'll recommend the best fit for learning)"
 
-## STRUCTURED TURN OUTPUT
-You must return a structured DiscoveryTurn object:
+## OUTPUT FORMAT
+1. **While still gathering information**:
+   - Respond conversationally with your next 1-2 targeted questions.
 
-1. **While Still Interviewing**:
-   - Set `status="gathering_info"`.
-   - Set `message_to_user` to your conversational response containing your 1-2 questions.
-   - Leave `report=null`.
+2. **When Discovery is complete** (project idea, learning focus, and familiar technologies are fully clear):
+   - Output a structured summary:
 
-2. **When Discovery is Complete**:
-   - When the project idea, learning focus, and familiar technologies are fully clear:
-     - Set `status="ready"`.
-     - Set `message_to_user` to a brief congratulatory message summarizing that discovery is complete.
-     - Populate `report` with the full `DiscoveryReport` fields:
-       - `project_idea`: Detailed description of the project.
-       - `learning_focus`: Array of focus areas (Frontend, Backend, Database).
-       - `familiar_technologies`: Array of tools student already knows.
-       - `timeline`: Stated timeline or default.
-       - `preferred_language`: Stated language preference or null.
-       - `expected_users`: Stated scale or default.
-       - `assumptions`: Array of default assumptions made.
-       - `confidence`: "high" (or "medium"/"low" if critical info remains ambiguous).
-       - `open_questions`: Array of remaining clarifications if any.
+### Discovery Report Summary
+- **Project Idea**: Detailed description of the project.
+- **Learning Focus**: Selected areas (Frontend, Backend, Database).
+- **Familiar Technologies**: Tools the student already knows.
+- **Timeline**: Stated timeline or default ("2 weeks").
+- **Preferred Language**: Stated preference or "Open".
+- **Expected Users**: Stated scale or "under 100 users".
+- **Assumptions**: List any default assumptions made.
+- **Confidence**: **High**
+- **Open Questions**: None (or any minor remaining clarifications).
 
 ## RULES
 - Do NOT recommend any specific stack or technologies yet — that is the Technical Design Agent's job!
 - Challenge vague answers gently.
-- Always set `status="gathering_info"` until you have enough information to set `status="ready"`.
+- Set Confidence to **High** ONLY when the required information (idea, learning focus, familiar stack) is fully captured.
 """

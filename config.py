@@ -24,30 +24,49 @@ MEMORY_DIR.mkdir(exist_ok=True)
 # ─── API Keys ────────────────────────────────────────────────────────────────
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-
-from google.adk.models.google_llm import Gemini
-from google.genai import types as genai_types
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
+NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "nvidia/nemotron-3-ultra-550b-a55b")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "nvidia" if NVIDIA_API_KEY else "gemini")
 
 # ─── Model Configuration ─────────────────────────────────────────────────────
-# Automatic exponential backoff & retry configuration for transient 429/408/5xx errors
-_RETRY_OPTIONS = genai_types.HttpRetryOptions(
-    attempts=5,
-    initial_delay=2.0,
-    max_delay=60.0,
-    exp_base=2.0,
-    jitter=1.0,
-)
+if LLM_PROVIDER == "nvidia" and NVIDIA_API_KEY:
+    from nvidia_llm import NvidiaLlm
 
-# Strong model for orchestrator and complex reasoning
-ORCHESTRATOR_MODEL = Gemini(
-    model=os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-flash"),
-    retry_options=_RETRY_OPTIONS,
-)
-# Lighter model for focused sub-agents
-WORKER_MODEL = Gemini(
-    model=os.getenv("WORKER_MODEL", "gemini-2.5-flash"),
-    retry_options=_RETRY_OPTIONS,
-)
+    ORCHESTRATOR_MODEL = NvidiaLlm(
+        model=NVIDIA_MODEL,
+        api_key=NVIDIA_API_KEY,
+        base_url=NVIDIA_BASE_URL,
+        temperature=0.7,
+        max_tokens=4096,
+    )
+    WORKER_MODEL = NvidiaLlm(
+        model=NVIDIA_MODEL,
+        api_key=NVIDIA_API_KEY,
+        base_url=NVIDIA_BASE_URL,
+        temperature=0.7,
+        max_tokens=4096,
+    )
+else:
+    from google.adk.models.google_llm import Gemini
+    from google.genai import types as genai_types
+
+    _RETRY_OPTIONS = genai_types.HttpRetryOptions(
+        attempts=5,
+        initial_delay=2.0,
+        max_delay=60.0,
+        exp_base=2.0,
+        jitter=1.0,
+    )
+
+    ORCHESTRATOR_MODEL = Gemini(
+        model=os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-flash"),
+        retry_options=_RETRY_OPTIONS,
+    )
+    WORKER_MODEL = Gemini(
+        model=os.getenv("WORKER_MODEL", "gemini-2.5-flash"),
+        retry_options=_RETRY_OPTIONS,
+    )
 
 # ─── Agent Settings ──────────────────────────────────────────────────────────
 AGENT_APP_NAME = "projectforge"
