@@ -264,8 +264,10 @@ async def run_cli() -> None:
 
                 if "final_report" in state:
                     current_stage = "report_generation"
-                elif "tech_design" in state:
+                elif "risk_assessment" in state:
                     current_stage = "report_generation"
+                elif "tech_design" in state:
+                    current_stage = "risk_analysis"
                 elif discovery_ready:
                     current_stage = "tech_design"
                 else:

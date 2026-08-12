@@ -96,7 +96,12 @@ function connectWebSocket() {
 // ─── Message Handling ───────────────────────────────────────────────────────
 function handleAgentMessage(data) {
     switch (data.type) {
+        case "agent_status":
+            updateTypingIndicator(data.label || data.agent);
+            break;
+
         case "chunk":
+            removeTypingIndicator();
             if (!isStreaming) {
                 // Start new agent message
                 isStreaming = true;
@@ -221,17 +226,21 @@ function addSystemMessage(text, type = "info") {
     messagesContainer.appendChild(div);
 }
 
-function addTypingIndicator() {
+function addTypingIndicator(agentLabel = "Thinking...") {
     const existing = document.getElementById("typingIndicator");
-    if (existing) return;
+    if (existing) {
+        updateTypingIndicator(agentLabel);
+        return;
+    }
 
     const div = document.createElement("div");
     div.id = "typingIndicator";
     div.className = "message agent-message";
     div.innerHTML = `
-        <div class="message-avatar">🏗️</div>
+        <div class="message-avatar">⚡</div>
         <div class="message-content">
             <div class="typing-indicator">
+                <span class="typing-label" id="typingLabel">${escapeHtml(agentLabel)}</span>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
@@ -239,6 +248,17 @@ function addTypingIndicator() {
         </div>
     `;
     messagesContainer.appendChild(div);
+    scrollToBottom();
+}
+
+function updateTypingIndicator(label) {
+    const typingLabel = document.getElementById("typingLabel");
+    if (typingLabel) {
+        typingLabel.textContent = label;
+        scrollToBottom();
+    } else {
+        addTypingIndicator(label);
+    }
 }
 
 function removeTypingIndicator() {
@@ -389,7 +409,7 @@ async function openReportsModal() {
 function updateStageTracker(currentStage) {
     if (!currentStage) return;
 
-    const stages = ["discovery", "tech_design", "report_generation"];
+    const stages = ["discovery", "tech_design", "risk_analysis", "report_generation"];
     const currentIdx = stages.indexOf(currentStage);
 
     stages.forEach((stage, idx) => {

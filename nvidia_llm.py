@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, AsyncGenerator, Optional
+import time
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from google.adk.models.base_llm import BaseLlm
 from google.adk.models.llm_request import LlmRequest
@@ -29,11 +30,16 @@ class NvidiaLlm(BaseLlm):
     base_url: str = Field(default="https://integrate.api.nvidia.com/v1")
     temperature: float = 0.7
     max_tokens: int = 4096
+    timeout: float = 60.0
 
     async def generate_content_async(
         self, llm_request: LlmRequest, stream: bool = False
     ) -> AsyncGenerator[LlmResponse, None]:
-        client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
+        client = AsyncOpenAI(
+            api_key=self.api_key,
+            base_url=self.base_url,
+            timeout=self.timeout,
+        )
 
         messages = []
 
@@ -130,31 +136,80 @@ class NvidiaLlm(BaseLlm):
         if tools:
             kwargs["tools"] = tools
 
+        start_time = time.perf_counter()
         try:
-            resp = await client.chat.completions.create(**kwargs)
-            choice = resp.choices[0]
-            msg = choice.message
+            if stream:
+                kwargs["stream"] = True
+                stream_resp = await client.chat.completions.create(**kwargs)
+                tool_calls_accumulator: Dict[int, Dict[str, str]] = {}
 
-            parts = []
-            if msg.tool_calls:
-                for tc in msg.tool_calls:
-                    args = {}
-                    try:
-                        args = json.loads(tc.function.arguments) if tc.function.arguments else {}
-                    except Exception:
-                        pass
-                    parts.append(types.Part.from_function_call(name=tc.function.name, args=args))
-            if msg.content:
-                parts.append(types.Part.from_text(text=msg.content))
+                async for chunk in stream_resp:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
 
-            if not parts:
-                parts.append(types.Part.from_text(text=""))
+                    # Handle streamed text
+                    if delta.content:
+                        part = types.Part.from_text(text=delta.content)
+                        yield LlmResponse(content=types.Content(role="model", parts=[part]))
 
-            content_resp = types.Content(role="model", parts=parts)
-            yield LlmResponse(content=content_resp)
+                    # Accumulate streamed tool calls
+                    if delta.tool_calls:
+                        for tc in delta.tool_calls:
+                            idx = tc.index
+                            if idx not in tool_calls_accumulator:
+                                tool_calls_accumulator[idx] = {
+                                    "name": tc.function.name or "",
+                                    "arguments": tc.function.arguments or "",
+                                }
+                            else:
+                                if tc.function.name:
+                                    tool_calls_accumulator[idx]["name"] += tc.function.name
+                                if tc.function.arguments:
+                                    tool_calls_accumulator[idx]["arguments"] += tc.function.arguments
+
+                # Emit accumulated tool calls if any were made
+                if tool_calls_accumulator:
+                    parts = []
+                    for _, tc in sorted(tool_calls_accumulator.items()):
+                        args = {}
+                        try:
+                            args = json.loads(tc["arguments"]) if tc["arguments"] else {}
+                        except Exception:
+                            pass
+                        parts.append(types.Part.from_function_call(name=tc["name"], args=args))
+                    yield LlmResponse(content=types.Content(role="model", parts=parts))
+
+                elapsed = time.perf_counter() - start_time
+                logger.info("NVIDIA LLM streamed request [%s] completed in %.2fs", self.model, elapsed)
+            else:
+                resp = await client.chat.completions.create(**kwargs)
+                choice = resp.choices[0]
+                msg = choice.message
+
+                parts = []
+                if msg.tool_calls:
+                    for tc in msg.tool_calls:
+                        args = {}
+                        try:
+                            args = json.loads(tc.function.arguments) if tc.function.arguments else {}
+                        except Exception:
+                            pass
+                        parts.append(types.Part.from_function_call(name=tc.function.name, args=args))
+                if msg.content:
+                    parts.append(types.Part.from_text(text=msg.content))
+
+                if not parts:
+                    parts.append(types.Part.from_text(text=""))
+
+                elapsed = time.perf_counter() - start_time
+                logger.info("NVIDIA LLM request [%s] completed in %.2fs", self.model, elapsed)
+                content_resp = types.Content(role="model", parts=parts)
+                yield LlmResponse(content=content_resp)
 
         except Exception as e:
-            logger.error("NVIDIA LLM error: %s", str(e), exc_info=True)
+            elapsed = time.perf_counter() - start_time
+            logger.error("NVIDIA LLM error after %.2fs: %s", elapsed, str(e), exc_info=True)
             error_content = types.Content(
                 role="model",
                 parts=[types.Part.from_text(text=f"Error communicating with NVIDIA model: {str(e)}")]

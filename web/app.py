@@ -149,6 +149,7 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
 
             # Stream agent response
             full_response = ""
+            turn_start = asyncio.get_event_loop().time()
 
             try:
                 async for event in runner.run_async(
@@ -156,14 +157,31 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                     session_id=session_id,
                     new_message=user_content,
                 ):
-                    # Filter to only the root orchestrator's conversational events
+                    agent_name = event.author or "projectforge"
+                    friendly_names = {
+                        "projectforge_orchestrator": "🎯 ProjectForge Orchestrator",
+                        "discovery_agent": "🔍 Discovery Agent",
+                        "tech_design_agent": "🏗️ Technical Design Agent",
+                        "risk_analysis_agent": "⚠️ Risk Analysis Agent",
+                        "report_generator_agent": "📋 Report Generator",
+                    }
+                    friendly_label = friendly_names.get(agent_name, agent_name)
+
+                    # If this is a sub-agent event, notify UI of active sub-agent progress
                     if event.author and event.author != root_agent.name:
+                        await websocket.send_json({
+                            "type": "agent_status",
+                            "agent": event.author,
+                            "label": friendly_label,
+                            "status": "working",
+                        })
                         continue
+
+                    # Stream text chunks from root agent
                     if event.content and event.content.parts:
                         for part in event.content.parts:
                             if part.text:
                                 full_response += part.text
-                                # Send incremental chunks
                                 await websocket.send_json({
                                     "type": "chunk",
                                     "text": part.text,
@@ -171,6 +189,7 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                                 })
 
                 # Signal completion
+                duration_s = round(asyncio.get_event_loop().time() - turn_start, 2)
                 current_stage = "discovery"
                 try:
                     updated_session = await session_service.get_session(
@@ -191,8 +210,10 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
 
                         if "final_report" in state:
                             current_stage = "report_generation"
-                        elif "tech_design" in state:
+                        elif "risk_assessment" in state:
                             current_stage = "report_generation"
+                        elif "tech_design" in state:
+                            current_stage = "risk_analysis"
                         elif discovery_ready:
                             current_stage = "tech_design"
                         else:
@@ -219,6 +240,7 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                     "type": "done",
                     "full_text": full_response,
                     "current_stage": current_stage,
+                    "duration_s": duration_s,
                 })
 
             except Exception as e:
