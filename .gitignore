@@ -60,6 +60,7 @@ test.py
 
 # ─── Generated Reports & Logs ─────────────────────────────────
 reports/
+memory/
 *.log
 logs/
 
@@ -70,3 +71,4 @@ logs/
 .cache/
 .codex-history/
 .claude-code-history/
+
