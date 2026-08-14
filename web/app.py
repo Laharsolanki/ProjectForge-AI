@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
+import hashlib
+import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -30,10 +32,13 @@ from config import (
 )
 from agents import root_agent
 
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
 # ─── Paths ────────────────────────────────────────────────────────────────────
 WEB_DIR = Path(__file__).parent
-TEMPLATES_DIR = WEB_DIR / "templates"
-STATIC_DIR = WEB_DIR / "static"
+FRONTEND_DIR = BASE_DIR / "frontend"
 
 # ─── Global state ─────────────────────────────────────────────────────────────
 session_service = None
@@ -46,6 +51,21 @@ async def lifespan(app: FastAPI):
     global session_service, runner
 
     db_path = BASE_DIR / "memory" / "sessions.db"
+    
+    # Initialize users table
+    conn = sqlite3.connect(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY,
+                password TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+    finally:
+        conn.close()
+
     session_service = DatabaseSessionService(db_url=f"sqlite+aiosqlite:///{db_path}")
 
     runner = Runner(
@@ -69,10 +89,10 @@ app = FastAPI(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 # Templates
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+templates = Jinja2Templates(directory=str(FRONTEND_DIR))
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
@@ -84,13 +104,82 @@ async def index(request: Request):
 
 
 @app.post("/api/session")
-async def create_session():
+async def create_session(request: Request):
     """Create a new chat session."""
+    try:
+        data = await request.json()
+        user_id = data.get("user_id", DEFAULT_USER_ID)
+    except Exception:
+        user_id = DEFAULT_USER_ID
+
     session = await session_service.create_session(
         app_name=AGENT_APP_NAME,
-        user_id=DEFAULT_USER_ID,
+        user_id=user_id,
     )
     return {"session_id": session.id}
+
+@app.post("/api/register")
+async def register(request: Request):
+    """Register a new user."""
+    try:
+        data = await request.json()
+        username = data.get("username", "").strip()
+        password = data.get("password", "").strip()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Invalid request body"})
+
+    if not username or not password:
+        return JSONResponse(status_code=400, content={"error": "Username and password are required"})
+
+    db_path = BASE_DIR / "memory" / "sessions.db"
+    conn = sqlite3.connect(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT username FROM users WHERE username = ?", (username,))
+        if cursor.fetchone():
+            return JSONResponse(status_code=400, content={"error": "Username already exists"})
+        
+        hashed = hash_password(password)
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed))
+        conn.commit()
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Database error: {str(e)}"})
+    finally:
+        conn.close()
+
+    return {"message": "Registration successful", "username": username}
+
+@app.post("/api/login")
+async def login(request: Request):
+    """Authenticate an existing user."""
+    try:
+        data = await request.json()
+        username = data.get("username", "").strip()
+        password = data.get("password", "").strip()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Invalid request body"})
+
+    if not username or not password:
+        return JSONResponse(status_code=400, content={"error": "Username and password are required"})
+
+    db_path = BASE_DIR / "memory" / "sessions.db"
+    conn = sqlite3.connect(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+        row = cursor.fetchone()
+        if not row:
+            return JSONResponse(status_code=400, content={"error": "Invalid username or password"})
+        
+        hashed = hash_password(password)
+        if row[0] != hashed:
+            return JSONResponse(status_code=400, content={"error": "Invalid username or password"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Database error: {str(e)}"})
+    finally:
+        conn.close()
+
+    return {"message": "Login successful", "username": username}
 
 
 @app.get("/api/reports")
@@ -124,7 +213,7 @@ async def download_report(filename: str):
 
 
 @app.websocket("/ws/{session_id}")
-async def websocket_chat(websocket: WebSocket, session_id: str):
+async def websocket_chat(websocket: WebSocket, session_id: str, user_id: str = DEFAULT_USER_ID):
     """
     WebSocket endpoint for real-time chat with the agent.
     Streams agent responses as they are generated.
@@ -153,7 +242,7 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
 
             try:
                 async for event in runner.run_async(
-                    user_id=DEFAULT_USER_ID,
+                    user_id=user_id,
                     session_id=session_id,
                     new_message=user_content,
                 ):
@@ -194,7 +283,7 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                 try:
                     updated_session = await session_service.get_session(
                         app_name=AGENT_APP_NAME,
-                        user_id=DEFAULT_USER_ID,
+                        user_id=user_id,
                         session_id=session_id,
                     )
                     if updated_session and updated_session.state:
