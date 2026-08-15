@@ -1,31 +1,31 @@
-# Use an official lightweight Python image
-FROM python:3.11-slim
+# Use official Python lightweight base image
+FROM python:3.13-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8000
+# Prevent Python from writing .pyc files and buffer output
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
 
-# Set the working directory inside the container
+# Set working directory inside container
 WORKDIR /app
 
-# Install basic system dependencies
+# Install basic system requirements
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install python dependencies
+# Copy dependencies list and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application source code
+# Copy application files
 COPY . .
 
-# Ensure storage directories exist
+# Ensure directories for persistent memory exist
 RUN mkdir -p memory reports
 
-# Expose the web port
+# Expose server port
 EXPOSE 8000
 
-# Launch uvicorn web server dynamically using the PORT environment variable
-CMD ["sh", "-c", "uvicorn web.app:app --host 0.0.0.0 --port ${PORT}"]
+# Launch server
+CMD python main.py web --host=0.0.0.0 --port=$PORT
